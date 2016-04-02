@@ -1,5 +1,5 @@
 # Day Extremes
-The project supports two HIVE UDFs to enable fetching first/last day of day/week/month/quarter/year for a provided date with optional interval timestamp value can be added.
+The project supports HIVE UDFs to enable fetching first/last day of day/week/month/quarter/year for a provided date with optional interval timestamp value can be added.
 
 -----
 Usage
