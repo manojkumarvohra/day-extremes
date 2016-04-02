@@ -22,7 +22,7 @@ hive> SELECT FIRST_DAY_OF('YEAR','02-08-2011','dd-MM-yyyy', false);
 
 hive> SELECT LAST_DAY_OF('QUARTER','22-01-2011','dd-MM-yyyy', true, '23:45:45');
 
-*2011-06-30 23:45:45*
+*2011-03-31 23:45:45*
 
 hive> SELECT LAST_DAY_OF('YEAR','02-08-2011','dd-MM-yyyy', false);
 
