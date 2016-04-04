@@ -22,37 +22,41 @@ public class FirstDayOfTimeUnitUDF extends AbstractDayOfTimeUnitUDF {
 	}
 
 	@Override
-	public void calculateDayWithInterval(Date date, boolean includeInterval, Integer[] interval) {
+	public void calculateDayWithInterval(Date date, String output_format, boolean includeInterval, Integer[] interval) {
 		DateTime dateTime = addInterval(includeInterval, interval, new DateTime(date));
-		setOutputDate(includeInterval, dateTime);
+		setOutputDate(includeInterval, dateTime, output_format);
 	}
 
 	@Override
-	public void calculateDayOfWeekWithInterval(Date date, boolean includeInterval, Integer[] interval) {
+	public void calculateDayOfWeekWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval) {
 		DateTime dateTime = addInterval(includeInterval, interval, new DateTime(date).withDayOfWeek(1));
-		setOutputDate(includeInterval, dateTime);
+		setOutputDate(includeInterval, dateTime, output_format);
 	}
 
 	@Override
-	public void calculateDayOfMonthWithInterval(Date date, boolean includeInterval, Integer[] interval) {
+	public void calculateDayOfMonthWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval) {
 		DateTime dateTime = addInterval(includeInterval, interval, new DateTime(date).withDayOfMonth(1));
-		setOutputDate(includeInterval, dateTime);
+		setOutputDate(includeInterval, dateTime, output_format);
 	}
 
 	@Override
-	public void calculateDayOfQuarterWithInterval(Date date, boolean includeInterval, Integer[] interval) {
+	public void calculateDayOfQuarterWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval) {
 		DateTime dateTime = new DateTime(date);
 		int month = dateTime.getMonthOfYear() - 1;
 		int quarter = month / 3 + 1;
 		DateTime firstDayOfQuarter = new DateTime(dateTime.getYear(), 3 * quarter - 2, 1, 0, 0, 0);
 		DateTime firstDayOfQuarterWithInterval = addInterval(includeInterval, interval, firstDayOfQuarter);
-		setOutputDate(includeInterval, firstDayOfQuarterWithInterval);
+		setOutputDate(includeInterval, firstDayOfQuarterWithInterval, output_format);
 	}
 
 	@Override
-	public void calculateDayOfYearWithInterval(Date date, boolean includeInterval, Integer[] interval) {
+	public void calculateDayOfYearWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval) {
 		DateTime dateTime = addInterval(includeInterval, interval, new DateTime(date).withDayOfYear(1));
-		setOutputDate(includeInterval, dateTime);
+		setOutputDate(includeInterval, dateTime, output_format);
 	}
 
 }

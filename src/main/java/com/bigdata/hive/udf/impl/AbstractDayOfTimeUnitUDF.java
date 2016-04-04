@@ -27,8 +27,8 @@ import org.joda.time.DateTime;
 
 public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 
-	private static final String DATE_WITHOUT_STAMP = "yyyy-MM-dd";
-	private static final String FORMAT_DATE_WITH_STAMP = "yyyy-MM-dd HH:mm:ss";
+	private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+	private static final String DEFAULT_INTERVAL_FORMAT = "HH:mm:ss";
 	private transient Converter dateConverter;
 	private final Calendar calendar = Calendar.getInstance();
 	private transient PrimitiveCategory dateType;
@@ -41,7 +41,7 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 
 		case 1:
 			throw new UDFArgumentLengthException(
-					"Invalid function usage: Correct Usage => FunctionName(<String> unit, <String/Timestamp/Date> date, <String> format[optional], <boolean> include_interval [optional], <String> interval[optional])");
+					"Invalid function usage: Correct Usage => FunctionName(<String> unit, <String/Timestamp/Date> date, <String> input_format[optional], <String> output_format[optional], <boolean> include_interval [optional], <String> interval[optional])");
 		case 2:
 			verifyUnitInspector(arguments);
 			verifyDateInspector(arguments);
@@ -50,20 +50,29 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 		case 3:
 			verifyUnitInspector(arguments);
 			verifyDateInspector(arguments);
-			verifyFormatInspector(arguments);
+			verifyInputFormatInspector(arguments);
 			break;
 
 		case 4:
 			verifyUnitInspector(arguments);
 			verifyDateInspector(arguments);
-			verifyFormatInspector(arguments);
-			verifyIncludeIntervalInspector(arguments);
+			verifyInputFormatInspector(arguments);
+			verifyOutputFormatInspector(arguments);
 			break;
 
 		case 5:
 			verifyUnitInspector(arguments);
 			verifyDateInspector(arguments);
-			verifyFormatInspector(arguments);
+			verifyInputFormatInspector(arguments);
+			verifyOutputFormatInspector(arguments);
+			verifyIncludeIntervalInspector(arguments);
+			break;
+
+		case 6:
+			verifyUnitInspector(arguments);
+			verifyDateInspector(arguments);
+			verifyInputFormatInspector(arguments);
+			verifyOutputFormatInspector(arguments);
 			verifyIncludeIntervalInspector(arguments);
 			verifyIntervalInspector(arguments);
 			break;
@@ -104,7 +113,8 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 
 		TimeUnit unit = null;
 		Date date = null;
-		String format = null;
+		String input_format = null;
+		String output_format = null;
 		boolean includeInterval = false;
 		Integer[] interval = null;
 
@@ -112,23 +122,31 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 
 		case 2:
 			unit = checkAndGetUnit(arguments);
-			date = checkAndGetDate(arguments, DATE_WITHOUT_STAMP);
+			date = checkAndGetDate(arguments, DEFAULT_DATE_FORMAT);
 			break;
 		case 3:
 			unit = checkAndGetUnit(arguments);
-			format = checkAndGetFormat(arguments);
-			date = checkAndGetDate(arguments, format);
+			input_format = checkAndGetInputFormat(arguments);
+			date = checkAndGetDate(arguments, input_format);
 			break;
 		case 4:
 			unit = checkAndGetUnit(arguments);
-			format = checkAndGetFormat(arguments);
-			date = checkAndGetDate(arguments, format);
-			includeInterval = checkAndGetIncludeInterval(arguments);
+			input_format = checkAndGetInputFormat(arguments);
+			output_format = checkAndGetOutputFormat(arguments);
+			date = checkAndGetDate(arguments, input_format);
 			break;
 		case 5:
 			unit = checkAndGetUnit(arguments);
-			format = checkAndGetFormat(arguments);
-			date = checkAndGetDate(arguments, format);
+			input_format = checkAndGetInputFormat(arguments);
+			output_format = checkAndGetOutputFormat(arguments);
+			date = checkAndGetDate(arguments, input_format);
+			includeInterval = checkAndGetIncludeInterval(arguments);
+			break;
+		case 6:
+			unit = checkAndGetUnit(arguments);
+			input_format = checkAndGetInputFormat(arguments);
+			output_format = checkAndGetOutputFormat(arguments);
+			date = checkAndGetDate(arguments, input_format);
 			includeInterval = checkAndGetIncludeInterval(arguments);
 			interval = checkAndGetInterval(arguments);
 			break;
@@ -137,23 +155,23 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 		switch (unit) {
 
 		case DAY:
-			calculateDayWithInterval(date, includeInterval, interval);
+			calculateDayWithInterval(date, output_format, includeInterval, interval);
 			break;
 
 		case WEEK:
-			calculateDayOfWeekWithInterval(date, includeInterval, interval);
+			calculateDayOfWeekWithInterval(date, output_format, includeInterval, interval);
 			break;
 
 		case MONTH:
-			calculateDayOfMonthWithInterval(date, includeInterval, interval);
+			calculateDayOfMonthWithInterval(date, output_format, includeInterval, interval);
 			break;
 
 		case QUARTER:
-			calculateDayOfQuarterWithInterval(date, includeInterval, interval);
+			calculateDayOfQuarterWithInterval(date, output_format, includeInterval, interval);
 			break;
 
 		case YEAR:
-			calculateDayOfYearWithInterval(date, includeInterval, interval);
+			calculateDayOfYearWithInterval(date, output_format, includeInterval, interval);
 			break;
 		}
 
@@ -210,11 +228,23 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 
 	}
 
-	private String checkAndGetFormat(DeferredObject[] arguments) throws HiveException, UDFArgumentException {
+	private String checkAndGetInputFormat(DeferredObject[] arguments) throws HiveException, UDFArgumentException {
 		Object formatValue = arguments[2].get();
 
 		if (formatValue == null) {
-			throw new UDFArgumentException("format cannot be null");
+			throw new UDFArgumentException("input_format cannot be null");
+		}
+
+		String format = PrimitiveObjectInspectorFactory.javaStringObjectInspector.getPrimitiveJavaObject(formatValue);
+
+		return format;
+	}
+
+	private String checkAndGetOutputFormat(DeferredObject[] arguments) throws HiveException, UDFArgumentException {
+		Object formatValue = arguments[3].get();
+
+		if (formatValue == null) {
+			throw new UDFArgumentException("output_format cannot be null");
 		}
 
 		String format = PrimitiveObjectInspectorFactory.javaStringObjectInspector.getPrimitiveJavaObject(formatValue);
@@ -223,10 +253,10 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 	}
 
 	private boolean checkAndGetIncludeInterval(DeferredObject[] arguments) throws HiveException, UDFArgumentException {
-		Object includeIntervalValue = arguments[3].get();
+		Object includeIntervalValue = arguments[4].get();
 
 		if (includeIntervalValue == null) {
-			throw new UDFArgumentException("include interval cannot be null");
+			throw new UDFArgumentException("include_interval cannot be null");
 		}
 
 		boolean includeInterval = (Boolean) PrimitiveObjectInspectorFactory.writableBooleanObjectInspector
@@ -236,7 +266,7 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 	}
 
 	private Integer[] checkAndGetInterval(DeferredObject[] arguments) throws HiveException, UDFArgumentException {
-		Object intervalValue = arguments[4].get();
+		Object intervalValue = arguments[5].get();
 
 		if (intervalValue == null) {
 			throw new UDFArgumentException("interval cannot be null");
@@ -300,53 +330,69 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 		}
 	}
 
-	private void verifyFormatInspector(ObjectInspector[] arguments) throws UDFArgumentException {
+	private void verifyInputFormatInspector(ObjectInspector[] arguments) throws UDFArgumentException {
 		ObjectInspector formatInspector = arguments[2];
 		if (!(formatInspector instanceof StringObjectInspector)) {
-			throw new UDFArgumentTypeException(2, "Only String is accepted for format parameter but "
+			throw new UDFArgumentTypeException(2, "Only String is accepted for input_format parameter but "
 					+ formatInspector.getTypeName() + " is passed as third argument");
 		}
 	}
 
+	private void verifyOutputFormatInspector(ObjectInspector[] arguments) throws UDFArgumentException {
+		ObjectInspector formatInspector = arguments[3];
+		if (!(formatInspector instanceof StringObjectInspector)) {
+			throw new UDFArgumentTypeException(2, "Only String is accepted for output_format parameter but "
+					+ formatInspector.getTypeName() + " is passed as fourth argument");
+		}
+	}
+
 	private void verifyIncludeIntervalInspector(ObjectInspector[] arguments) throws UDFArgumentException {
-		ObjectInspector includeIntervalInspector = arguments[3];
+		ObjectInspector includeIntervalInspector = arguments[4];
 		if (!(includeIntervalInspector instanceof BooleanObjectInspector)) {
 			throw new UDFArgumentTypeException(4, "Only boolean is accepted for include_interval parameter but "
-					+ includeIntervalInspector.getTypeName() + " is passed as fourth argument");
+					+ includeIntervalInspector.getTypeName() + " is passed as fifth argument");
 		}
 	}
 
 	private void verifyIntervalInspector(ObjectInspector[] arguments) throws UDFArgumentException {
-		ObjectInspector intervalInspector = arguments[4];
+		ObjectInspector intervalInspector = arguments[5];
 		if (!(intervalInspector instanceof StringObjectInspector)) {
 			throw new UDFArgumentTypeException(4, "Only String is accepted for interval parameter but "
-					+ intervalInspector.getTypeName() + " is passed as fifth argument");
+					+ intervalInspector.getTypeName() + " is passed as sixth argument");
 		}
 	}
 
-	protected void setOutputDate(boolean includeInterval, DateTime dateTime) {
-		String outPutFormat = includeInterval ? FORMAT_DATE_WITH_STAMP : DATE_WITHOUT_STAMP;
-		outputDate.set(dateTime.toString(outPutFormat));
-		System.out.println(outputDate);
+	protected void setOutputDate(boolean includeInterval, DateTime dateTime, String output_format_argument_passed) {
+		String outputFormat = output_format_argument_passed != null ? output_format_argument_passed
+				: DEFAULT_DATE_FORMAT;
+		outputFormat = includeInterval ? outputFormat + " " + DEFAULT_INTERVAL_FORMAT : outputFormat;
+		outputDate.set(dateTime.toString(outputFormat));
 	}
 
 	protected DateTime addInterval(boolean includeInterval, Integer[] interval, DateTime dateTime) {
 
 		if (includeInterval) {
-			return new DateTime(dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(), interval[0],
-					interval[1], interval[2]);
+			return new DateTime(dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(),
+					interval == null ? dateTime.getHourOfDay() : interval[0],
+					interval == null ? dateTime.getMinuteOfDay() : interval[1],
+					interval == null ? dateTime.getSecondOfDay() : interval[2]);
 		}
 		return dateTime;
 	}
 
-	protected abstract void calculateDayOfYearWithInterval(Date date, boolean includeInterval, Integer[] interval);
+	protected abstract void calculateDayOfYearWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval);
 
-	protected abstract void calculateDayOfQuarterWithInterval(Date date, boolean includeInterval, Integer[] interval);
+	protected abstract void calculateDayOfQuarterWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval);
 
-	protected abstract void calculateDayOfMonthWithInterval(Date date, boolean includeInterval, Integer[] interval);
+	protected abstract void calculateDayOfMonthWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval);
 
-	protected abstract void calculateDayOfWeekWithInterval(Date date, boolean includeInterval, Integer[] interval);
+	protected abstract void calculateDayOfWeekWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval);
 
-	protected abstract void calculateDayWithInterval(Date date, boolean includeInterval, Integer[] interval);
+	protected abstract void calculateDayWithInterval(Date date, String output_format, boolean includeInterval,
+			Integer[] interval);
 
 }
