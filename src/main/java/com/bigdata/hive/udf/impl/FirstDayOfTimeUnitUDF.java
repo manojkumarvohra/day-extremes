@@ -5,10 +5,11 @@ import java.util.Date;
 import org.apache.hadoop.hive.ql.exec.Description;
 import org.joda.time.DateTime;
 
-@Description(name = "first_day_of", value = "_FUNC_(unit, input_date, format, include_interval, interval) - Returns the first date for unit (day/week/month/quarter/year) "
+@Description(name = "first_day_of", value = "_FUNC_(unit, input_date, input_format, output_format, include_interval, interval) - Returns the first date for unit (day/week/month/quarter/year) "
 		+ "based on input_date.", extended = "unit accepts value DAY, WEEK, MONTH, QUARTER, YEAR.\n "
 				+ "input_date is a string with default assumed format being 'yyyy-MM-dd HH:mm:ss' or 'yyyy-MM-dd'.\n "
-				+ "format is a string is input date is in format other than default 'yyyy-MM-dd HH:mm:ss' or 'yyyy-MM-dd'.\n "
+				+ "input_format is a string which can be specified if input date is in format other than default 'yyyy-MM-dd HH:mm:ss' or 'yyyy-MM-dd'.\n "
+				+ "output_format is a string which can be specified if output date is expected in format other than default 'yyyy-MM-dd HH:mm:ss' or 'yyyy-MM-dd'.\n "
 				+ "include_interval is a boolean to control whether output date would contain the timestamp or not.\n "
 				+ "interval is a string accepted in format 'HH:mm:ss' which can be added to return value.\n "
 				+ "Example:\n " + "  > SELECT _FUNC_('QUARTER','22-01-2011','dd-MM-yyyy', true, '23:45:45');\n"
