@@ -3,14 +3,19 @@ package unit;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.util.Date;
+
 import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
 import org.apache.hadoop.hive.ql.exec.UDFArgumentLengthException;
 import org.apache.hadoop.hive.ql.exec.UDFArgumentTypeException;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDF.DeferredObject;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
+import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.Text;
+import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -703,6 +708,56 @@ public class DayOfTimeUnitUDFTest {
 
 		assertThat(outputDate.toString(), is("1983-01-01 23:22:22"));
 	}
+	
+	@Test
+	public void shouldGetFirstDayOfYearWithIntervalForInputDateParameter() throws Exception {
+
+		ObjectInspector[] objectInspector = new ObjectInspector[6];
+		objectInspector[0] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[1] = PrimitiveObjectInspectorFactory.writableDateObjectInspector;
+		objectInspector[2] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[3] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[4] = PrimitiveObjectInspectorFactory.javaBooleanObjectInspector;
+		objectInspector[5] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+
+		firstDayOfTimeUnitUDF.initialize(objectInspector);
+
+		DeferredObject[] arguments = new DeferredObject[6];
+		arguments[0] = new DeferredArgument<String>("YEAR");
+		arguments[1] = new DeferredArgument<DateWritable>(new DateWritable());
+		arguments[2] = new DeferredArgument<String>("yyyy-MM-dd");
+		arguments[3] = new DeferredArgument<String>("yyyy-MM-dd");
+		arguments[4] = new DeferredArgument<BooleanWritable>(new BooleanWritable(true));
+		arguments[5] = new DeferredArgument<String>("23:22:22");
+		Text outputDate = (Text) firstDayOfTimeUnitUDF.evaluate(arguments);
+
+		assertThat(outputDate.toString(), is("1970-01-01 23:22:22"));
+	}
+
+	@Test
+	public void shouldGetFirstDayOfYearWithIntervalForInputTimeStampParameter() throws Exception {
+
+		ObjectInspector[] objectInspector = new ObjectInspector[6];
+		objectInspector[0] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[1] = PrimitiveObjectInspectorFactory.writableTimestampObjectInspector;
+		objectInspector[2] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[3] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[4] = PrimitiveObjectInspectorFactory.javaBooleanObjectInspector;
+		objectInspector[5] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+
+		firstDayOfTimeUnitUDF.initialize(objectInspector);
+
+		DeferredObject[] arguments = new DeferredObject[6];
+		arguments[0] = new DeferredArgument<String>("YEAR");
+		arguments[1] = new DeferredArgument<TimestampWritable>(new TimestampWritable());
+		arguments[2] = new DeferredArgument<String>("yyyy-MM-dd");
+		arguments[3] = new DeferredArgument<String>("yyyy-MM-dd");
+		arguments[4] = new DeferredArgument<BooleanWritable>(new BooleanWritable(true));
+		arguments[5] = new DeferredArgument<String>("23:22:22");
+		Text outputDate = (Text) firstDayOfTimeUnitUDF.evaluate(arguments);
+
+		assertThat(outputDate.toString(), is("1970-01-01 23:22:22"));
+	}
 
 	@Test
 	public void shouldGetCorrectDisplayStringForLastDayOfTimeUnitUDF() throws Exception {
@@ -969,6 +1024,56 @@ public class DayOfTimeUnitUDFTest {
 		Text outputDate = (Text) lastDayOfTimeUnitUDF.evaluate(arguments);
 
 		assertThat(outputDate.toString(), is("1983-12-31 23:22:22"));
+	}
+	
+	@Test
+	public void shouldGetLastDayOfYearWithIntervalForInputDateParameter() throws Exception {
+
+		ObjectInspector[] objectInspector = new ObjectInspector[6];
+		objectInspector[0] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[1] = PrimitiveObjectInspectorFactory.writableDateObjectInspector;
+		objectInspector[2] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[3] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[4] = PrimitiveObjectInspectorFactory.javaBooleanObjectInspector;
+		objectInspector[5] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+
+		lastDayOfTimeUnitUDF.initialize(objectInspector);
+
+		DeferredObject[] arguments = new DeferredObject[6];
+		arguments[0] = new DeferredArgument<String>("YEAR");
+		arguments[1] = new DeferredArgument<DateWritable>(new DateWritable());
+		arguments[2] = new DeferredArgument<String>("yyyy-MM-dd");
+		arguments[3] = new DeferredArgument<String>("yyyy-MM-dd");
+		arguments[4] = new DeferredArgument<BooleanWritable>(new BooleanWritable(true));
+		arguments[5] = new DeferredArgument<String>("23:22:22");
+		Text outputDate = (Text) lastDayOfTimeUnitUDF.evaluate(arguments);
+
+		assertThat(outputDate.toString(), is("1970-12-31 23:22:22"));
+	}
+
+	@Test
+	public void shouldGetLastDayOfYearWithIntervalForInputTimeStampParameter() throws Exception {
+
+		ObjectInspector[] objectInspector = new ObjectInspector[6];
+		objectInspector[0] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[1] = PrimitiveObjectInspectorFactory.writableTimestampObjectInspector;
+		objectInspector[2] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[3] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+		objectInspector[4] = PrimitiveObjectInspectorFactory.javaBooleanObjectInspector;
+		objectInspector[5] = PrimitiveObjectInspectorFactory.javaStringObjectInspector;
+
+		lastDayOfTimeUnitUDF.initialize(objectInspector);
+
+		DeferredObject[] arguments = new DeferredObject[6];
+		arguments[0] = new DeferredArgument<String>("YEAR");
+		arguments[1] = new DeferredArgument<TimestampWritable>(new TimestampWritable());
+		arguments[2] = new DeferredArgument<String>("yyyy-MM-dd");
+		arguments[3] = new DeferredArgument<String>("yyyy-MM-dd");
+		arguments[4] = new DeferredArgument<BooleanWritable>(new BooleanWritable(true));
+		arguments[5] = new DeferredArgument<String>("23:22:22");
+		Text outputDate = (Text) lastDayOfTimeUnitUDF.evaluate(arguments);
+
+		assertThat(outputDate.toString(), is("1970-12-31 23:22:22"));
 	}
 
 }
