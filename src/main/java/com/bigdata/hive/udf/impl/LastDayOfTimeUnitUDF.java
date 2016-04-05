@@ -5,6 +5,11 @@ import java.util.Date;
 import org.apache.hadoop.hive.ql.exec.Description;
 import org.joda.time.DateTime;
 
+/*
+ * @Author: Manoj Kumar Vohra
+ * @Date: 02-April-2016
+ */
+
 @Description(name = "last_day_of", value = "_FUNC_(unit, input_date, input_format, output_format, include_interval, interval) - Returns the last date for unit (day/week/month/quarter/year) "
 		+ "based on input_date.", extended = "unit accepts value DAY, WEEK, MONTH, QUARTER, YEAR.\n "
 				+ "input_date is a string with default assumed format being 'yyyy-MM-dd HH:mm:ss' or 'yyyy-MM-dd'.\n "

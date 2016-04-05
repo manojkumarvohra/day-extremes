@@ -25,6 +25,10 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspe
 import org.apache.hadoop.io.Text;
 import org.joda.time.DateTime;
 
+/*
+ * @Author: Manoj Kumar Vohra
+ * @Date: 02-April-2016
+ */
 public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 
 	private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
