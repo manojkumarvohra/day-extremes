@@ -22,6 +22,8 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.BooleanObjectInsp
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorConverter.TimestampConverter;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.WritableDateObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.WritableTimestampObjectInspector;
 import org.apache.hadoop.io.Text;
 import org.joda.time.DateTime;
 
@@ -31,6 +33,7 @@ import org.joda.time.DateTime;
  */
 public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 
+	private static final String FUNCTION_USAGE = "Invalid function usage: Correct Usage => FunctionName(<String> unit, <String/Timestamp/Date> date, <String> input_format[optional], <String> output_format[optional], <boolean> include_interval [optional], <String> interval[optional])";
 	private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 	private static final String DEFAULT_INTERVAL_FORMAT = "HH:mm:ss";
 	private transient Converter dateConverter;
@@ -44,8 +47,7 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 		switch (arguments.length) {
 
 		case 1:
-			throw new UDFArgumentLengthException(
-					"Invalid function usage: Correct Usage => FunctionName(<String> unit, <String/Timestamp/Date> date, <String> input_format[optional], <String> output_format[optional], <boolean> include_interval [optional], <String> interval[optional])");
+			throw new UDFArgumentLengthException(FUNCTION_USAGE);
 		case 2:
 			verifyUnitInspector(arguments);
 			verifyDateInspector(arguments);
@@ -81,8 +83,7 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 			verifyIntervalInspector(arguments);
 			break;
 		default:
-			throw new UDFArgumentLengthException(
-					"Invalid function usage: Correct Usage => FunctionName(<String> unit, <String/Timestamp/Date> date, <String> format[optional], <String> interval[optional])");
+			throw new UDFArgumentLengthException(FUNCTION_USAGE);
 		}
 
 		dateType = ((PrimitiveObjectInspector) arguments[1]).getPrimitiveCategory();
@@ -204,6 +205,11 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 	private Date checkAndGetDate(DeferredObject[] arguments, String format) throws HiveException {
 
 		Object dateArgument = arguments[1].get();
+
+		if (dateArgument == null) {
+			throw new UDFArgumentException("date cannot be null");
+		}
+
 		SimpleDateFormat formatter = new SimpleDateFormat(format);
 		switch (dateType) {
 		case STRING:
@@ -327,7 +333,8 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 	private void verifyDateInspector(ObjectInspector[] arguments) throws UDFArgumentException {
 		ObjectInspector dateInspector = arguments[1];
 
-		if (dateInspector.getCategory() != ObjectInspector.Category.PRIMITIVE) {
+		if (!(dateInspector instanceof StringObjectInspector || dateInspector instanceof WritableDateObjectInspector
+				|| dateInspector instanceof WritableTimestampObjectInspector)) {
 			throw new UDFArgumentTypeException(1,
 					"Only STRING/TIMESTAMP/DATEWRITABLE are accepted for date parameter but "
 							+ dateInspector.getTypeName() + " is passed as second argument");
@@ -369,7 +376,12 @@ public abstract class AbstractDayOfTimeUnitUDF extends GenericUDF {
 	protected void setOutputDate(boolean includeInterval, DateTime dateTime, String output_format_argument_passed) {
 		String outputFormat = output_format_argument_passed != null ? output_format_argument_passed
 				: DEFAULT_DATE_FORMAT;
-		outputFormat = includeInterval ? outputFormat + " " + DEFAULT_INTERVAL_FORMAT : outputFormat;
+
+		if (includeInterval
+				&& !(outputFormat.contains("HH") || outputFormat.contains("mm") || outputFormat.contains("ss"))) {
+			outputFormat = outputFormat + " " + DEFAULT_INTERVAL_FORMAT;
+		}
+
 		outputDate.set(dateTime.toString(outputFormat));
 	}
 

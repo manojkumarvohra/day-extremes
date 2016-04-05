@@ -22,9 +22,11 @@ import org.joda.time.DateTime;
 				+ "  '2011-12-31'")
 public class LastDayOfTimeUnitUDF extends AbstractDayOfTimeUnitUDF {
 
+	private static final String LAST_DAY_DISPLAY_MESSAGE = "Gets last day of day/week/month/quarter/year for a provided date with optional interval timestamp value can be added.";
+
 	@Override
 	public String getDisplayString(String[] children) {
-		return "Gets last day of day/week/month/quarter/year for a provided date with optional interval timestamp value can be added.";
+		return LAST_DAY_DISPLAY_MESSAGE;
 	}
 
 	@Override

@@ -22,9 +22,11 @@ import org.joda.time.DateTime;
 				+ "  '2011-01-01'")
 public class FirstDayOfTimeUnitUDF extends AbstractDayOfTimeUnitUDF {
 
+	private static final String FIRST_DAY_DISPLAY_MESSAGE = "Gets first day of day/week/month/quarter/year for a provided date with optional interval timestamp value can be added.";
+
 	@Override
 	public String getDisplayString(String[] children) {
-		return "Gets first day of day/week/month/quarter/year for a provided date with optional interval timestamp value can be added.";
+		return FIRST_DAY_DISPLAY_MESSAGE;
 	}
 
 	@Override
